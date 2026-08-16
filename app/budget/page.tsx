@@ -2,7 +2,7 @@ import { createClient } from "../../lib/supabase/server";
 import { money } from "../../lib/money";
 
 type Entry = {
-  amount: number | string;
+  amount: number | string | null;
 };
 
 export default async function Budget() {
@@ -16,12 +16,18 @@ export default async function Budget() {
     return null;
   }
 
-  const { data: incomeData, error: incomeError } = await supabase
+  const {
+    data: incomeData,
+    error: incomeError,
+  } = await supabase
     .from("income_entries")
     .select("amount")
     .eq("user_id", user.id);
 
-  const { data: expenseData, error: expenseError } = await supabase
+  const {
+    data: expenseData,
+    error: expenseError,
+  } = await supabase
     .from("expense_entries")
     .select("amount")
     .eq("user_id", user.id);
@@ -41,17 +47,17 @@ export default async function Budget() {
     );
   }
 
-  // Supabase can return null, so safely convert null to an empty array.
+  // Supabase can return null, so always convert to an array.
   const incomeEntries: Entry[] = incomeData ?? [];
   const expenseEntries: Entry[] = expenseData ?? [];
 
   const totalIncome = incomeEntries.reduce(
-    (total, entry) => total + Number(entry.amount || 0),
+    (total, entry) => total + Number(entry.amount ?? 0),
     0
   );
 
   const totalExpenses = expenseEntries.reduce(
-    (total, entry) => total + Number(entry.amount || 0),
+    (total, entry) => total + Number(entry.amount ?? 0),
     0
   );
 
@@ -63,7 +69,7 @@ export default async function Budget() {
 
       <section className="grid g2">
         <div className="card">
-          Income
+          <div>Income</div>
 
           <div className="metric">
             {money(totalIncome)}
@@ -71,7 +77,7 @@ export default async function Budget() {
         </div>
 
         <div className="card">
-          Expenses
+          <div>Expenses</div>
 
           <div className="metric">
             {money(totalExpenses)}
@@ -79,11 +85,8 @@ export default async function Budget() {
         </div>
       </section>
 
-      <div
-        className="card"
-        style={{ marginTop: 18 }}
-      >
-        Available after tracked expenses
+      <div className="card" style={{ marginTop: 18 }}>
+        <div>Available after tracked expenses</div>
 
         <div className="metric">
           {money(available)}
